@@ -1,9 +1,9 @@
 % solve(最大勤務人数(リスト), 勤務可能日(リストのリスト), 最大連勤日数(定数), シフト(リストのリスト))
 % solve(MaxWorkers, CanWork, MaxConsecutiveWork, Shift)
-solve([], [], _, Shift).
-solve([], Canwork, _, Shift).
-solve([MaxWorkersToday | MaxWorkers], [CanWorkEmployee | CanWork], MaxConsecutiveWork, [ShiftEmployee | Shift]) :-
-    true.
+solve(_, [], _, []).
+solve(MaxWorkers, [CanWorkEmployee | CanWork], MaxConsecutiveWork, [ShiftEmployee | Shift]) :-
+    employee(MaxWorkers, After, CanWorkEmployee, MaxConsecutiveWork, ShiftEmployee),
+    solve(After, CanWork, MaxConsecutiveWork, Shift).
 
 % 従業員一人分の探索
 employee([], [], [], _, []).
