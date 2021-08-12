@@ -6,24 +6,21 @@ solve(MaxWorkers, [CanWorkEmployee | CanWork], [ShiftEmployee | Shift]) :-
     solve(After, CanWork, Shift).
 
 % 従業員一人分の探索
+% search_employee_shift(最大勤務人数のリスト，更新後の最大勤務人数のリスト，勤務可能日，シフト)
 search_employee_shift([], [], [], []).
-% その曜日に従業員が働けない場合
-search_employee_shift([MaxWokersBeforeToday | MaxWokersBefore], [MaxWokersAfterToday | MaxWokersAfter], [CanWorkToday | CanWork], [ShiftToday | Shift]) :-
-    search_employee_shift(MaxWokersBefore, MaxWokersAfter, CanWork, Shift),
-    CanWorkToday = 0,
-    ShiftToday = 0,
-    MaxWokersAfterToday = MaxWokersBeforeToday.
-% その曜日に従業員が働けて，まだシフトが埋まっていない場合
-search_employee_shift([MaxWokersBeforeToday | MaxWokersBefore], [MaxWokersAfterToday | MaxWokersAfter], [CanWorkToday | CanWork], [ShiftToday | Shift]) :-
-    search_employee_shift(MaxWokersBefore, MaxWokersAfter, CanWork, Shift),
-    CanWorkToday = 1,
-    MaxWokersBeforeToday > 0,
-    ShiftToday = 1,
-    MaxWokersAfterToday is MaxWokersBeforeToday - 1.
-% その曜日に従業員が働けるが，シフトが埋まっている場合
-search_employee_shift([MaxWokersBeforeToday | MaxWokersBefore], [MaxWokersAfterToday | MaxWokersAfter], [CanWorkToday | CanWork], [ShiftToday | Shift]) :-
-    search_employee_shift(MaxWokersBefore, MaxWokersAfter, CanWork, Shift),
-    CanWorkToday = 1,
-    MaxWokersBeforeToday =< 0,
-    ShiftToday = 0,
-    MaxWokersAfterToday = MaxWokersBeforeToday.
+search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [0 | CanWork], [0 | Shift]) :- !,
+    % その曜日に従業員が働けない場合
+    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersAfterToday | MaxWorkersAfter], [1 | CanWork], [1 | Shift]) :-
+    % その曜日に従業員が働けて，まだシフトが埋まっていない場合
+    MaxWorkersBeforeToday > 0,
+    MaxWorkersAfterToday is MaxWorkersBeforeToday - 1,
+    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [1 | CanWork], [0 | Shift]) :-
+    % その曜日に従業員が働けるが，働かない場合
+    MaxWorkersBeforeToday > 0,
+    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [_ | CanWork], [0 | Shift]) :-
+    % シフトが埋まっている場合は働かない
+    MaxWorkersBeforeToday =< 0,
+    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
