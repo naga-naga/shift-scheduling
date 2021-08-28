@@ -1,30 +1,33 @@
-% solve(最大勤務人数(リスト), 勤務可能日(リストのリスト), シフト(リストのリスト))
-% solve(MaxWorkers, CanWork, Shift)
-solve(_, [], _, []).
-solve(MaxWorkers, [CanWorkEmployee | CanWork], MaxDays, [ShiftEmployee | Shift]) :-
-    search_employee_shift(MaxWorkers, After, CanWorkEmployee, ShiftEmployee),
+% solve(最低人数(リスト), 最大勤務人数(リスト), 勤務可能日(リストのリスト), 最大連勤日数, シフト(リストのリスト))
+solve(MinWorkers, _, [], _, []) :-
+    max_member(Max, MinWorkers),
+    Max =< 0, !, true;
+    fail.
+solve(MinWorkers, MaxWorkers, [CanWorkEmployee | CanWork], MaxDays, [ShiftEmployee | Shift]) :-
+    search_employee_shift(MinWorkers, MinWorkersAfter, MaxWorkers, MaxWorkersAfter, CanWorkEmployee, ShiftEmployee),
     le_max_days(ShiftEmployee, ShiftEmployee, MaxDays, MaxDays, 7),
-    solve(After, CanWork, MaxDays, Shift).
+    solve(MinWorkersAfter, MaxWorkersAfter, CanWork, MaxDays, Shift).
 
 % 従業員一人分の探索
-% search_employee_shift(最大勤務人数のリスト，更新後の最大勤務人数のリスト，勤務可能日，シフト)
-search_employee_shift([], [], [], []).
-search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [0 | CanWork], [0 | Shift]) :- !,
+% search_employee_shift(最低人数のリスト, 更新後の最低人数のリスト, 最大勤務人数のリスト，更新後の最大勤務人数のリスト，勤務可能日，シフト)
+search_employee_shift([], [], [], [], [], []).
+search_employee_shift([MinWorkersBeforeToday | MinWorkersBefore], [MinWorkersBeforeToday | MinWorkersAfter], [MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [0 | CanWork], [0 | Shift]) :- !,
     % その曜日に従業員が働けない場合
-    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
-search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersAfterToday | MaxWorkersAfter], [1 | CanWork], [1 | Shift]) :-
+    search_employee_shift(MinWorkersBefore, MinWorkersAfter, MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MinWorkersBeforeToday | MinWorkersBefore], [MinWorkersAfterToday | MinWorkersAfter], [MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersAfterToday | MaxWorkersAfter], [1 | CanWork], [1 | Shift]) :-
     % その曜日に従業員が働けて，働く場合
     MaxWorkersBeforeToday > 0,
+    MinWorkersAfterToday is MinWorkersBeforeToday - 1,
     MaxWorkersAfterToday is MaxWorkersBeforeToday - 1,
-    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
-search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [1 | CanWork], [0 | Shift]) :-
+    search_employee_shift(MinWorkersBefore, MinWorkersAfter, MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MinWorkersBeforeToday | MinWorkersBefore], [MinWorkersBeforeToday | MinWorkersAfter], [MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [1 | CanWork], [0 | Shift]) :-
     % その曜日に従業員が働けるが，働かない場合
     MaxWorkersBeforeToday > 0,
-    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
-search_employee_shift([MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [_ | CanWork], [0 | Shift]) :-
+    search_employee_shift(MinWorkersBefore, MinWorkersAfter, MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+search_employee_shift([MinWorkersBeforeToday | MinWorkersBefore], [MinWorkersBeforeToday | MinWorkersAfter], [MaxWorkersBeforeToday | MaxWorkersBefore], [MaxWorkersBeforeToday | MaxWorkersAfter], [_ | CanWork], [0 | Shift]) :-
     % シフトが埋まっている場合は働かない
     MaxWorkersBeforeToday =< 0,
-    search_employee_shift(MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
+    search_employee_shift(MinWorkersBefore, MinWorkersAfter, MaxWorkersBefore, MaxWorkersAfter, CanWork, Shift).
 
 % シフトが最大連勤日数以下かどうかを調べる
 % le_max_days(1週間のシフト, 調べている途中のシフト, 最大連勤可能日数, 最大連勤日数を調べるための変数, ループ回数)
