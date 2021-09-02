@@ -1,8 +1,7 @@
 % solve(最低人数(リスト), 最大勤務人数(リスト), 勤務可能日(リストのリスト), 最大連勤日数, シフト(リストのリスト))
 solve(MinWorkers, _, [], _, []) :-
     max_member(Max, MinWorkers),
-    Max =< 0, !, true;
-    fail.
+    Max =< 0.
 solve(MinWorkers, MaxWorkers, [CanWorkEmployee | CanWork], MaxDays, [ShiftEmployee | Shift]) :-
     search_employee_shift(MinWorkers, MinWorkersAfter, MaxWorkers, MaxWorkersAfter, CanWorkEmployee, ShiftEmployee),
     le_max_days(ShiftEmployee, ShiftEmployee, MaxDays, MaxDays, 7),
